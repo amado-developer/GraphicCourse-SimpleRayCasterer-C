@@ -13,7 +13,7 @@ using namespace::std;
 
 class Raycaster
 {
-    private:
+    public:
         int width;
         int height;
         int block_size;
@@ -25,12 +25,21 @@ class Raycaster
         SDL_Window *window;
         SDL_Renderer *s;
         vector<vector<double>> colors{};
-    
-  
+        SDL_Texture* current_texture = NULL;
+        SDL_Surface* current_surface = NULL;
+        vector<SDL_Texture*> textures{};
+        vector<SDL_Surface*> surfaces{};
+        
+        vector<Uint8*> pixels{};
+        double tx;
+        vector<double> current_color{};
+        SDL_Rect screen = {0, 0, 1000, 500};
+        
     public:
         Raycaster(int width, int height, char* window_name);
         void point(int x, int y, vector<double> color);
         void draw_rectangle(int x, int y, int width, int height, vector<double> color);
+        void draw_rectangle(int x, int y, int width, int height);
         void load_map(char* filename);
         void render();
         void clear();

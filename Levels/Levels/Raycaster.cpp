@@ -10,7 +10,8 @@
 #include "Raycaster.h"
 #include <iomanip>
 #include <fstream>
-
+#include <SDL.h>
+#include <SDL_image.h>
 using namespace::std;
 Raycaster::Raycaster(int width, int height, char* window_name)
 {
@@ -29,6 +30,34 @@ Raycaster::Raycaster(int width, int height, char* window_name)
 
     SDL_RenderClear(s);
     this -> colors = colors;
+    SDL_Texture* texture1 = IMG_LoadTexture(s, "wall1.png");
+    SDL_Texture* texture2 = IMG_LoadTexture(s, "wall2.png");
+    SDL_Texture* texture3 = IMG_LoadTexture(s, "wall3.png");
+    SDL_Texture* texture4 = IMG_LoadTexture(s, "wall4.png");
+    SDL_Texture* texture5 = IMG_LoadTexture(s, "wall5.png");
+    
+    SDL_Surface* txt1 = IMG_Load("wall1.png");
+    SDL_Surface* txt2 = IMG_Load("wall2.png");
+    SDL_Surface* txt3 = IMG_Load("wall3.png");
+    SDL_Surface* txt4 = IMG_Load("wall4.png");
+    SDL_Surface* txt5 = IMG_Load("wall5.png");
+
+    textures.push_back(texture1);
+    textures.push_back(texture2);
+    textures.push_back(texture3);
+    textures.push_back(texture4);
+    textures.push_back(texture5);
+    
+    surfaces.push_back(txt1);
+    surfaces.push_back(txt2);
+    surfaces.push_back(txt3);
+    surfaces.push_back(txt4);
+    surfaces.push_back(txt5);
+    
+//    int w, h;
+//    SDL_QueryTexture(texture1, NULL, NULL, &w, &h);
+
+//    this -> pixels.push_back(pixels);
 }
 
 void Raycaster::clear()
@@ -69,7 +98,17 @@ void Raycaster::cast_ray(double angle)
             is_not_Wall = false;
             wall_position = map[j][i] - 1;
             ray_distance = distance;
+            auto hitx = x - (double) i*50.0;
+            auto hity = y - (double) j*50.0;
             
+            double maxhit{0};
+            
+            if(hitx > 1.0 && hitx < 49.0)
+                maxhit = hitx;
+            else
+                maxhit = hity;
+            
+            tx = int(maxhit * 128.0 / 50.0);
         }
         else
         {
@@ -83,12 +122,23 @@ void Raycaster::draw_strake(double x, double h, vector<double> color)
 {
     auto start{int(250.0 - h / 2.0)};
     auto end{int(250.0 + h / 2.0)};
-    
-    for(auto y{start}; y < end; y++)
+    auto txt = this -> current_surface;
+    Uint8* pixels = (Uint8*)txt->pixels;
+   
+    for(int y{start}; y < end; y++)
     {
-        point(x, y, color);
+        int ty = ((y - start)*128.0)/(end - start);
+        uint32_t pixel = *( ( uint32_t * )txt->pixels + (int)ty * txt->w + int(tx));
+        uint8_t r ;
+        uint8_t g ;
+        uint8_t b ;
+
+        SDL_GetRGB( pixel, txt->format , &r, &g, &b );
+        int red{r};
+        int green{g};
+        int blue{b};
+        point(x, y, {static_cast<double>(r), static_cast<double>(g), static_cast<double>(b)});
     }
-    
 }
 void Raycaster::render()
 {
@@ -102,7 +152,10 @@ void Raycaster::render()
             int j{y/block_size};
 
             if(this->map[j][i] != ' ')
-                draw_rectangle(x, y, block_size, block_size, colors[(int) map[j][i] - 49]);
+            {
+                current_texture = textures[int(map[j][i] - 49)];
+                draw_rectangle(x, y, block_size, block_size);
+            }
         }
     }
     point(player[0], player[1], {255, 255, 255});
@@ -113,6 +166,7 @@ void Raycaster::render()
         point(501, i, {0, 0, 0});
         point(499, i, {0, 0, 0});
     }
+    
     for(auto i{1}; i < 500; i++)
     {
         auto angle{player[2] - player[3]/2.0 + (player[3] * (double) i) / 500.0};
@@ -120,19 +174,17 @@ void Raycaster::render()
         auto x{500.0 + (double) i};
         auto h{500.0/(ray_distance * cos(angle - player[2])) * 100};
         int wall_position = this -> wall_position - 48;
+        current_texture = textures[wall_position - 1];
+        current_surface = surfaces[wall_position];
         draw_strake(x, h, colors[wall_position]);
     }
-    
         bool quit = false;
         SDL_Event event;
     
         while (!quit) {
-            //drawing particles
-            //setting up objects
-            //repeated over and over again
-    
             while (SDL_PollEvent(&event)) {
-                if (event.type == SDL_QUIT) {
+                if (event.type == SDL_QUIT)
+                {
                     quit = true;
                 }
                 
@@ -201,6 +253,17 @@ void Raycaster::draw_rectangle(int x, int y, int width, int height, vector<doubl
     SDL_RenderDrawRect(s, &rect);
     SDL_SetRenderDrawColor(s, color[0], color[1], color[2], SDL_ALPHA_OPAQUE);
     SDL_RenderFillRect(s, &rect);
+}
+
+void Raycaster::draw_rectangle(int x, int y, int width, int height)
+{
+    SDL_Rect rect;
+    rect.x = x;
+    rect.y = y;
+    rect.w = width;
+    rect.h = height;
+    
+    SDL_RenderCopy(s, current_texture, &screen, &rect);
 }
 
 void Raycaster::load_map(char *filename)

@@ -11,6 +11,8 @@
 		3C4B0F2B2547C54500AD8F34 /* SDL2.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3CA6F4D22547BE9900EC0DD1 /* SDL2.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		3C4B0F362547CF8A00AD8F34 /* Raycaster.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B0F352547CF8A00AD8F34 /* Raycaster.cpp */; };
 		3CA6F4C62547BD9000EC0DD1 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA6F4C52547BD9000EC0DD1 /* main.cpp */; };
+		3CEDFA742548958D005A4B69 /* SDL2_image.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CA6F4D12547BE9900EC0DD1 /* SDL2_image.framework */; };
+		3CEDFA752548958D005A4B69 /* SDL2_image.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3CA6F4D12547BE9900EC0DD1 /* SDL2_image.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -21,6 +23,7 @@
 			dstSubfolderSpec = 10;
 			files = (
 				3C4B0F2B2547C54500AD8F34 /* SDL2.framework in Embed Frameworks */,
+				3CEDFA752548958D005A4B69 /* SDL2_image.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -52,6 +55,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3C4B0F2A2547C54500AD8F34 /* SDL2.framework in Frameworks */,
+				3CEDFA742548958D005A4B69 /* SDL2_image.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -279,8 +283,10 @@
 				DEVELOPMENT_TEAM = 5YEC793W4T;
 				ENABLE_HARDENED_RUNTIME = YES;
 				FRAMEWORK_SEARCH_PATHS = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				HEADER_SEARCH_PATHS = "";
-				"HEADER_SEARCH_PATHS[arch=*]" = /Library/Frameworks/SDL2.framework/Headers;
+				HEADER_SEARCH_PATHS = (
+					/Library/Frameworks/SDL2.framework/Headers,
+					/Library/Frameworks/SDL2_image.framework/Headers,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -293,7 +299,10 @@
 				DEVELOPMENT_TEAM = 5YEC793W4T;
 				ENABLE_HARDENED_RUNTIME = YES;
 				FRAMEWORK_SEARCH_PATHS = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				HEADER_SEARCH_PATHS = "";
+				HEADER_SEARCH_PATHS = (
+					/Library/Frameworks/SDL2.framework/Headers,
+					/Library/Frameworks/SDL2_image.framework/Headers,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
