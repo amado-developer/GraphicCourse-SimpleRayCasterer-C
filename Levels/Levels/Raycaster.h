@@ -35,6 +35,7 @@ class Raycaster
         double tx;
         vector<double> current_color{};
         SDL_Rect screen = {0, 0, 1000, 500};
+        vector<double> zBuffer{};
         
     public:
         Raycaster(int width, int height, char* window_name);
@@ -44,7 +45,7 @@ class Raycaster
         void load_map(char* filename);
         void render();
         void clear();
-        void cast_ray(double angle);
+        double cast_ray(double angle);
         void draw_strake(double x, double h, vector<double> color);
         void draw_sprite(tuple<double, double, SDL_Surface*> sprite);
 };

@@ -65,11 +65,8 @@ Raycaster::Raycaster(int width, int height, char* window_name)
     this->enemies.push_back(make_tuple(220.0, 425.0, sprite1));
     this->enemies.push_back(make_tuple(320.0, 420.0, sprite2));
 
-    
-//    int w, h;
-//    SDL_QueryTexture(texture1, NULL, NULL, &w, &h);
-
-//    this -> pixels.push_back(pixels);
+    vector<double> zBuffer(500, -INFINITY);
+    this -> zBuffer = zBuffer;
 }
 
 void Raycaster::clear()
@@ -94,7 +91,7 @@ void Raycaster::clear()
     }
 }
 
-void Raycaster::cast_ray(double angle)
+double Raycaster::cast_ray(double angle)
 {
     double distance{0.0};
     bool is_not_Wall{true};
@@ -121,13 +118,17 @@ void Raycaster::cast_ray(double angle)
                 maxhit = hity;
             
             tx = int(maxhit * 128.0 / 50.0);
+            return distance;
         }
         else
         {
+           
             point(x, y, {255, 255, 255});
             distance+=1.0;
+            
         }
     }
+    return -INFINITY;
 }
 
 void Raycaster::draw_strake(double x, double h, vector<double> color)
@@ -164,17 +165,20 @@ void Raycaster::draw_sprite(tuple<double, double, SDL_Surface*> sprite)
     {
         for(auto y{sprite_y}; y < sprite_y + sprite_size; y++)
         {
-            if(x > 500)
+            if(x > 500 && x < 1000 && zBuffer[x - 500] >= sprite_d)
             {
                 auto tx{int((x - sprite_x) * 128.0/sprite_size)};
-                auto ty{int((y - sprite_y) * 128/sprite_size)};
+                auto ty{int((y - sprite_y) * 128.0/sprite_size)};
                 uint32_t pixel = *( ( uint32_t * ) current_sprite->pixels + ty * current_sprite->w + tx);
                 uint8_t r;
                 uint8_t g;
                 uint8_t b;
                 SDL_GetRGB( pixel, current_sprite->format , &r, &g, &b);
                 if(r != 152 && g != 0 && b != 136)
+                {
                     point(x, y, {static_cast<double>(r), static_cast<double>(g), static_cast<double>(b)});
+                    zBuffer[x - 500] = sprite_d;
+                }
             }
         }
     }
@@ -207,15 +211,16 @@ void Raycaster::render()
         point(499, i, {0, 0, 0});
     }
     
-    for(auto i{1}; i < 500; i++)
+    for(auto i{0}; i < 500; i++)
     {
         auto angle{player[2] - player[3]/2.0 + (player[3] * (double) i) / 500.0};
-        cast_ray(angle);
+        double distance{cast_ray(angle)};
         auto x{500.0 + (double) i};
         auto h{500.0/(ray_distance * cos(angle - player[2])) * 100};
         int wall_position = this -> wall_position - 48;
         current_texture = textures[wall_position - 1];
         current_surface = surfaces[wall_position];
+        zBuffer[i] = distance;
         draw_strake(x, h, colors[wall_position]);
     }
     
