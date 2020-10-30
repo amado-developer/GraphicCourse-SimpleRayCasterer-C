@@ -41,6 +41,11 @@ Raycaster::Raycaster(int width, int height, char* window_name)
     SDL_Surface* txt3 = IMG_Load("wall3.png");
     SDL_Surface* txt4 = IMG_Load("wall4.png");
     SDL_Surface* txt5 = IMG_Load("wall5.png");
+    
+    SDL_Surface* sprite1 = IMG_Load("sprite1.png");
+    SDL_Surface* sprite2 = IMG_Load("sprite2.png");
+    SDL_Surface* sprite3 = IMG_Load("sprite3.png");
+    SDL_Surface* sprite4 = IMG_Load("sprite4.png");
 
     textures.push_back(texture1);
     textures.push_back(texture2);
@@ -53,6 +58,13 @@ Raycaster::Raycaster(int width, int height, char* window_name)
     surfaces.push_back(txt3);
     surfaces.push_back(txt4);
     surfaces.push_back(txt5);
+   
+    this->enemies.push_back(make_tuple(100.0, 200.0, sprite2));
+    this->enemies.push_back(make_tuple(280.0, 190.0, sprite3));
+    this->enemies.push_back(make_tuple(225.0, 340.0, sprite4));
+    this->enemies.push_back(make_tuple(220.0, 425.0, sprite1));
+    this->enemies.push_back(make_tuple(320.0, 420.0, sprite2));
+
     
 //    int w, h;
 //    SDL_QueryTexture(texture1, NULL, NULL, &w, &h);
@@ -123,22 +135,50 @@ void Raycaster::draw_strake(double x, double h, vector<double> color)
     auto start{int(250.0 - h / 2.0)};
     auto end{int(250.0 + h / 2.0)};
     auto txt = this -> current_surface;
-    Uint8* pixels = (Uint8*)txt->pixels;
-   
+    
     for(int y{start}; y < end; y++)
     {
         int ty = ((y - start)*128.0)/(end - start);
         uint32_t pixel = *( ( uint32_t * )txt->pixels + (int)ty * txt->w + int(tx));
-        uint8_t r ;
-        uint8_t g ;
-        uint8_t b ;
+        uint8_t r;
+        uint8_t g;
+        uint8_t b;
 
         SDL_GetRGB( pixel, txt->format , &r, &g, &b );
-        int red{r};
-        int green{g};
-        int blue{b};
         point(x, y, {static_cast<double>(r), static_cast<double>(g), static_cast<double>(b)});
     }
+}
+
+void Raycaster::draw_sprite(tuple<double, double, SDL_Surface*> sprite)
+{
+    double sprite_a{atan2(get<1>(sprite) - player[1], get<0>(sprite) - player[0])};
+    double sprite_d{pow(pow(player[0] - get<0>(sprite), 2) + pow(player[1] - get<1>(sprite),2), 0.5)};
+    double sprite_size = (500.0/sprite_d) * 70.0;
+    double sprite_x = 500.0 + (sprite_a - player[2])*500.0/player[3] + 250.0 - sprite_size/2.0;
+    double sprite_y = 250.0 - sprite_size/2.0;
+    sprite_x = int(sprite_x);
+    sprite_y = int(sprite_y);
+    sprite_size = int(sprite_size);
+    
+    for(auto x{sprite_x}; x < sprite_x + sprite_size; x++)
+    {
+        for(auto y{sprite_y}; y < sprite_y + sprite_size; y++)
+        {
+            if(x > 500)
+            {
+                auto tx{int((x - sprite_x) * 128.0/sprite_size)};
+                auto ty{int((y - sprite_y) * 128/sprite_size)};
+                uint32_t pixel = *( ( uint32_t * ) current_sprite->pixels + ty * current_sprite->w + tx);
+                uint8_t r;
+                uint8_t g;
+                uint8_t b;
+                SDL_GetRGB( pixel, current_sprite->format , &r, &g, &b);
+                if(r != 152 && g != 0 && b != 136)
+                    point(x, y, {static_cast<double>(r), static_cast<double>(g), static_cast<double>(b)});
+            }
+        }
+    }
+    
 }
 void Raycaster::render()
 {
@@ -177,6 +217,13 @@ void Raycaster::render()
         current_texture = textures[wall_position - 1];
         current_surface = surfaces[wall_position];
         draw_strake(x, h, colors[wall_position]);
+    }
+    
+    for(auto enemy : enemies)
+    {
+        point(get<0>(enemy), get<1>(enemy), {0,0,0});
+        current_sprite = get<2>(enemy);
+        draw_sprite(enemy);
     }
         bool quit = false;
         SDL_Event event;

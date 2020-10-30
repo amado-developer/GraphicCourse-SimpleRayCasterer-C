@@ -27,9 +27,10 @@ class Raycaster
         vector<vector<double>> colors{};
         SDL_Texture* current_texture = NULL;
         SDL_Surface* current_surface = NULL;
+        SDL_Surface* current_sprite = NULL;
         vector<SDL_Texture*> textures{};
         vector<SDL_Surface*> surfaces{};
-        
+        vector<tuple<double, double, SDL_Surface*>> enemies{};
         vector<Uint8*> pixels{};
         double tx;
         vector<double> current_color{};
@@ -45,6 +46,7 @@ class Raycaster
         void clear();
         void cast_ray(double angle);
         void draw_strake(double x, double h, vector<double> color);
+        void draw_sprite(tuple<double, double, SDL_Surface*> sprite);
 };
 
 #endif /* Raycaster_h */
