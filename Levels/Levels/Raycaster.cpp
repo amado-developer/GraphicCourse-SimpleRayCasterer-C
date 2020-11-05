@@ -232,7 +232,7 @@ void Raycaster::render()
     }
         bool quit = false;
         SDL_Event event;
-    
+        SDL_RenderPresent(s);
         while (!quit) {
             while (SDL_PollEvent(&event)) {
                 if (event.type == SDL_QUIT)
@@ -279,7 +279,6 @@ void Raycaster::render()
                     }
                 }
             }
-            SDL_RenderPresent(s);
         }
     
         SDL_DestroyWindow(window);
