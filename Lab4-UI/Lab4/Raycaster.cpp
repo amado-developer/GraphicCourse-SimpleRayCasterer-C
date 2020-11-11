@@ -24,7 +24,7 @@ Raycaster::Raycaster(int width, int height, char* window_name)
     height, SDL_WINDOW_SHOWN);
     this->s = SDL_CreateRenderer(window, 0, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     this->block_size = 50;
-    vector<double>player{(static_cast<double>(block_size + 20)), (static_cast<double>(block_size + 20)), M_PI/ 3.0, M_PI/3.0};
+    vector<double>player{70.0, 70.0, 0, 0.785398};
     this->player = player;
     this->step_size = 5;
     vector<vector<double>> colors{{146, 60, 63}, {233, 70, 63}, {0, 130, 168}};
@@ -35,6 +35,7 @@ Raycaster::Raycaster(int width, int height, char* window_name)
     SDL_Texture* texture3 = IMG_LoadTexture(s, "wall3.png");
     SDL_Texture* texture4 = IMG_LoadTexture(s, "wall4.png");
     SDL_Texture* texture5 = IMG_LoadTexture(s, "wall5.png");
+    SDL_Texture* helText  = IMG_LoadTexture(s, "helicopter.png");
     
     SDL_Surface* txt1 = IMG_Load("wall1.png");
     SDL_Surface* txt2 = IMG_Load("wall2.png");
@@ -46,24 +47,28 @@ Raycaster::Raycaster(int width, int height, char* window_name)
     SDL_Surface* sprite2 = IMG_Load("sprite2.png");
     SDL_Surface* sprite3 = IMG_Load("sprite3.png");
     SDL_Surface* sprite4 = IMG_Load("sprite4.png");
+    SDL_Surface* helicopter = IMG_Load("helicopter.png");
 
     textures.push_back(texture1);
     textures.push_back(texture2);
     textures.push_back(texture3);
     textures.push_back(texture4);
     textures.push_back(texture5);
+    textures.push_back(helText);
     
     surfaces.push_back(txt1);
     surfaces.push_back(txt2);
     surfaces.push_back(txt3);
     surfaces.push_back(txt4);
     surfaces.push_back(txt5);
+    
    
     this->enemies.push_back(make_tuple(100.0, 200.0, sprite2));
     this->enemies.push_back(make_tuple(280.0, 190.0, sprite3));
     this->enemies.push_back(make_tuple(225.0, 340.0, sprite4));
     this->enemies.push_back(make_tuple(220.0, 425.0, sprite1));
-    this->enemies.push_back(make_tuple(320.0, 420.0, sprite2));
+    // this->enemies.push_back(make_tuple(320.0, 420.0, sprite2));
+    this->other_objects.push_back(make_tuple(400.0, 425.0,helicopter));
 
     vector<double> zBuffer(500, -INFINITY);
     this -> zBuffer = zBuffer;
@@ -219,6 +224,10 @@ void Raycaster::render()
         }
     }
     point(player[0], player[1], {255, 255, 255});
+    this->current_texture = textures[5];
+    point(400, 400, {0,0,0});
+    current_sprite = surfaces[5];
+    draw_rectangle(400, 400, block_size, block_size);
     
     for(auto i{0}; i < 500; i++)
     {
@@ -226,6 +235,8 @@ void Raycaster::render()
         point(501, i, {0, 0, 0});
         point(499, i, {0, 0, 0});
     }
+
+
     
     for(auto i{0}; i < 500; i++)
     {
@@ -240,6 +251,12 @@ void Raycaster::render()
         draw_strake(x, h, colors[wall_position]);
     }
     
+    for(auto object: other_objects)
+    {
+        point(get<0>(object), get<1>(object), {0,0,0});
+        current_sprite = get<2>(object);
+        draw_sprite(object);
+    }
     for(auto enemy : enemies)
     {
         point(get<0>(enemy), get<1>(enemy), {0,0,0});
@@ -250,51 +267,65 @@ void Raycaster::render()
         SDL_Event event;
         SDL_RenderPresent(s);
         while (!quit) {
-            while (SDL_PollEvent(&event)) {
+            while (SDL_PollEvent(&event)) 
+            {
+    
                 if (event.type == SDL_QUIT)
                 {
                     quit = true;
+                    break;
+                }
+
+                if(player[0] > 400.0 && player[0] < 450 && player[1] > 400 && player[1] < 450)
+                {
+                    win("./font.ttf", 40, "You have won! Press any key to start again!", {255, 255, 255, 255}, 120, 200);
                 }
                 
                 if(event.type == SDL_KEYDOWN)
                 {
                     if(event.key.keysym.sym == SDLK_a)
                     {
-                        player[2] -= M_PI/10.0;
+                        player[2] -= 0.5;
                         render();
                     }
                     
                     else if(event.key.keysym.sym == SDLK_d)
                     {
-                        player[2] += M_PI/10.0;
+                        player[2] += 0.5;
+        
                         render();
                     }
                     
                     else if(event.key.keysym.sym == SDLK_RIGHT)
                     {
-                        player[0] += 10.0;
+                        player[0] -= sin(player[2]) * 15;
+                        player[1] += cos(player[2]) * 15;
                         render();
                     }
                     
                     else if(event.key.keysym.sym == SDLK_LEFT)
                     {
-                        player[0] -= 10.0;
+                        player[0] += sin(player[2]) * 15;
+                        player[1] -= cos(player[2]) * 15;
                         render();
                     }
                     
                     else if(event.key.keysym.sym == SDLK_UP)
                     {
-                        player[1] += 10.0;
+                        player[0] += cos(player[2]) * 15;
+                        player[1] += sin(player[2]) * 15;
                         render();
                     }
                     
                     else if(event.key.keysym.sym == SDLK_DOWN)
                     {
-                        player[1] -= 10.0;
+                        player[0] -= cos(player[2]) * 15;
+                        player[1] -= sin(player[2]) * 15;
                         render();
                     }
                 }
             }
+ 
         }
     
         SDL_DestroyWindow(window);
@@ -305,7 +336,6 @@ void Raycaster::render()
 SDL_Texture* Raycaster::set_text(string path, int font_size, string message, SDL_Color color)
 {
     TTF_Init();
-    cout<<path<<endl;
     TTF_Font *font = TTF_OpenFont( path.c_str(), font_size);
     if(!font)
         cout<< "Failed to load font!\n";
@@ -321,7 +351,8 @@ SDL_Texture* Raycaster::set_text(string path, int font_size, string message, SDL
     SDL_FreeSurface(text_surface);
     return text_texture;
 }
-void Raycaster::render_main_menu(string path, int font_size, string message, SDL_Color color, int x, int y)
+void Raycaster::render_main_menu(string path, int font_size, string message, SDL_Color color, 
+int x, int y)
 {
     bool show{true};
     bool click{false};
@@ -351,6 +382,44 @@ void Raycaster::render_main_menu(string path, int font_size, string message, SDL
             {
                 show = false;
                 render();
+            }
+        }
+    }
+}
+
+void Raycaster::win(string path, int font_size, string message, SDL_Color color, int x, int y)
+{
+    bool show{true};
+    bool click{false};
+    int current_button{0};
+    SDL_Texture* background = IMG_LoadTexture(s, "win_background.jpg");
+    
+    SDL_SetRenderDrawColor(s, 0, 0, 0, SDL_ALPHA_OPAQUE);
+    SDL_RenderClear(s);
+    SDL_RenderCopy(s, background, NULL, NULL);
+    this -> text_texture = set_text(path, font_size, message, color);
+    SDL_QueryTexture(text_texture, nullptr, nullptr, &text_rect.w, &text_rect.h);
+    this -> text_rect.x = x;
+    this -> text_rect.y = y;
+    SDL_RenderCopy(s, text_texture, nullptr, &text_rect);
+    SDL_RenderPresent(s);
+    SDL_Event event;
+    while (show)
+    {
+        while (SDL_PollEvent(&event))
+        {
+            if (event.type == SDL_QUIT)
+            {
+                show = false;
+            }
+            
+            if(event.type == SDL_KEYDOWN)
+            {
+                show = false;
+                player[0] = 70;
+                player[1] = 70;
+                player[2] = 0;
+                render_main_menu("./font.ttf", 40, "Press any key to enter!", {255, 255, 255, 255}, 320, 200);
             }
         }
     }

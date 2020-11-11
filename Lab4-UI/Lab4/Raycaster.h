@@ -20,7 +20,7 @@ class Raycaster
         int block_size;
         double ray_distance;
         char wall_position;
-        vector<double> player;
+        vector<double> player{};
         vector<tuple<double, double, vector<double> > > points{};
         vector<vector<char>> map{};
         SDL_Window *window;
@@ -32,6 +32,7 @@ class Raycaster
         vector<SDL_Texture*> textures{};
         vector<SDL_Surface*> surfaces{};
         vector<tuple<double, double, SDL_Surface*>> enemies{};
+        vector<tuple<double, double, SDL_Surface*>> other_objects{};
         vector<Uint8*> pixels{};
         double tx;
         vector<double> current_color{};
@@ -48,6 +49,7 @@ class Raycaster
         void load_map(char* filename);
         void render();
         void render_main_menu(string path, int font_size, string message, SDL_Color color, int x, int y);
+        void win(string path, int font_size, string message, SDL_Color color, int x, int y);
         void clear();
         double cast_ray(double angle);
         void draw_strake(double x, double h, vector<double> color);
