@@ -8,8 +8,8 @@
 using namespace std;
 int main()
 {
-    Raycaster r(1000, 500, "Game");
-    r.load_map("map.txt");
+    Raycaster r(1000, 500, (char*)"Game");
+    r.load_map((char *) "map.txt");
     r.render_main_menu("./font.ttf", 40, "Press any key to enter!", {255, 255, 255, 255}, 320, 200);
     cout<<"Hasta la proxima"<<endl;
     return 0;

@@ -7,6 +7,7 @@
 
 #ifndef Raycaster_h
 #define Raycaster_h
+#include <SDL2/SDL_ttf.h>
 #include <stdio.h>
 #include <vector>
 #include <tuple>
@@ -40,7 +41,18 @@ class Raycaster
         vector<double> zBuffer{};
         SDL_Texture* text_texture = nullptr;
         SDL_Rect text_rect;
+        TTF_Font *font;
+        Uint32 frametimes[60];
+        Uint32 frametimelast;
+        Uint32 framecount;
+        float framespersecond;
+
+
+        Uint32 fps_lasttime = SDL_GetTicks(); //the last recorded time.
+        Uint32 fps_current; //the current FPS.
+        Uint32 fps_frames = 0; 
         
+
     public:
         Raycaster(int width, int height, char* window_name);
         void point(int x, int y, vector<double> color);
@@ -54,7 +66,9 @@ class Raycaster
         double cast_ray(double angle);
         void draw_strake(double x, double h, vector<double> color);
         void draw_sprite(tuple<double, double, SDL_Surface*> sprite);
-        SDL_Texture* set_text(string path, int font_size, string message, SDL_Color color);
+        void set_text(string path, int font_size, string message, SDL_Color color);
+        void set_text(string message, SDL_Color color);
+        void fpsthink();
         
 };
 

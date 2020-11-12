@@ -4,16 +4,17 @@
 //
 //  Created by Amado Garcia on 10/26/20.
 //
-
 #include <stdio.h>
 #include <SDL2/SDL.h>
 #include "Raycaster.h"
+#include "LTimer.h"
 #include <iomanip>
 #include <fstream>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
 #include <tuple>
 #include <iostream>
+#include <sstream>
 using namespace::std;
 Raycaster::Raycaster(int width, int height, char* window_name)
 {
@@ -43,6 +44,7 @@ Raycaster::Raycaster(int width, int height, char* window_name)
     SDL_Surface* txt4 = IMG_Load("wall4.png");
     SDL_Surface* txt5 = IMG_Load("wall5.png");
     
+
     SDL_Surface* sprite1 = IMG_Load("sprite1.png");
     SDL_Surface* sprite2 = IMG_Load("sprite2.png");
     SDL_Surface* sprite3 = IMG_Load("sprite3.png");
@@ -72,6 +74,12 @@ Raycaster::Raycaster(int width, int height, char* window_name)
 
     vector<double> zBuffer(500, -INFINITY);
     this -> zBuffer = zBuffer;
+
+
+    memset(frametimes, 0, sizeof(frametimes));
+    framecount = 0;
+    framespersecond = 0;
+    frametimelast = SDL_GetTicks();
 }
 
 /*
@@ -265,7 +273,43 @@ void Raycaster::render()
     }
         bool quit = false;
         SDL_Event event;
+
+        //Frames
+    
+
+        SDL_Rect text_rect;
+        string x = "X: " + to_string((int) player[0]);
+        set_text(x, {255, 0, 0, 255});
+        SDL_QueryTexture(text_texture, nullptr, nullptr, &text_rect.w, &text_rect.h);
+        text_rect.x = 500;
+        text_rect.y = 450;
+        SDL_RenderCopy(s, text_texture, nullptr, &text_rect);
+
+        string y = "Y: " + to_string((int) player[1]);
+        set_text(y, {255, 255, 50, 255});
+        SDL_QueryTexture(text_texture, nullptr, nullptr, &text_rect.w, &text_rect.h);
+        text_rect.x = 625;
+        text_rect.y = 450;
+        SDL_RenderCopy(s, text_texture, nullptr, &text_rect);
+   
+        fps_frames += 6;
+        if (fps_lasttime < SDL_GetTicks() - 1000)
+        {
+            fps_lasttime = SDL_GetTicks();
+            fps_current = fps_frames;
+            fps_frames = 0;
+        }
+
+        string frames_per_second = "FPS: " + to_string((int) fps_current);
+        set_text(frames_per_second, {50, 255, 50, 255});
+        SDL_QueryTexture(text_texture, nullptr, nullptr, &text_rect.w, &text_rect.h);
+        text_rect.x = 850;
+        text_rect.y = 450;
+        SDL_RenderCopy(s, text_texture, nullptr, &text_rect);
+
         SDL_RenderPresent(s);
+   
+
         while (!quit) {
             while (SDL_PollEvent(&event)) 
             {
@@ -333,10 +377,10 @@ void Raycaster::render()
         SDL_Quit();
 }
 
-SDL_Texture* Raycaster::set_text(string path, int font_size, string message, SDL_Color color)
+void Raycaster::set_text(string path, int font_size, string message, SDL_Color color)
 {
     TTF_Init();
-    TTF_Font *font = TTF_OpenFont( path.c_str(), font_size);
+    this->font = TTF_OpenFont( path.c_str(), font_size);
     if(!font)
         cout<< "Failed to load font!\n";
     
@@ -344,13 +388,25 @@ SDL_Texture* Raycaster::set_text(string path, int font_size, string message, SDL
     if(!text_surface)
         cout<< "Failed to create surface!\n";
     
-    auto text_texture{SDL_CreateTextureFromSurface(s, text_surface)};
+    this->text_texture =  SDL_CreateTextureFromSurface(s, text_surface);
     if(!text_texture)
         cout<< "Failed to create text texture!\n";
     
     SDL_FreeSurface(text_surface);
-    return text_texture;
 }
+
+void Raycaster::set_text(string message, SDL_Color color)
+{ 
+    TTF_Init();
+    auto text_surface{TTF_RenderText_Solid(font, message.c_str(), color)};
+    if(!text_surface)
+        cout<< "Failed to create surface!\n";
+    this->text_texture =  SDL_CreateTextureFromSurface(s, text_surface);
+    if(!text_texture)
+        cout<< "Failed to create text texture!\n";
+    SDL_FreeSurface(text_surface);
+}
+
 void Raycaster::render_main_menu(string path, int font_size, string message, SDL_Color color, 
 int x, int y)
 {
@@ -362,7 +418,7 @@ int x, int y)
     SDL_SetRenderDrawColor(s, 0, 0, 0, SDL_ALPHA_OPAQUE);
     SDL_RenderClear(s);
     SDL_RenderCopy(s, background, NULL, NULL);
-    this -> text_texture = set_text(path, font_size, message, color);
+    set_text(path, font_size, message, color);
     SDL_QueryTexture(text_texture, nullptr, nullptr, &text_rect.w, &text_rect.h);
     this -> text_rect.x = x;
     this -> text_rect.y = y;
@@ -397,7 +453,7 @@ void Raycaster::win(string path, int font_size, string message, SDL_Color color,
     SDL_SetRenderDrawColor(s, 0, 0, 0, SDL_ALPHA_OPAQUE);
     SDL_RenderClear(s);
     SDL_RenderCopy(s, background, NULL, NULL);
-    this -> text_texture = set_text(path, font_size, message, color);
+    set_text(path, font_size, message, color);
     SDL_QueryTexture(text_texture, nullptr, nullptr, &text_rect.w, &text_rect.h);
     this -> text_rect.x = x;
     this -> text_rect.y = y;
