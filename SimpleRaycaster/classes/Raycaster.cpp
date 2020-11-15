@@ -151,14 +151,17 @@ void Raycaster::draw_strake(double x, double h, vector<double> color)
     
     for(int y{start}; y < end; y++)
     {
-        int ty = ((y - start)*128.0)/(end - start);
-        uint32_t pixel = *( ( uint32_t * )txt->pixels + (int)ty * txt->w + int(tx));
-        uint8_t r;
-        uint8_t g;
-        uint8_t b;
+        if(x > 250 || y > 250)
+        {
+            int ty = ((y - start)*128.0)/(end - start);
+            uint32_t pixel = *( ( uint32_t * )txt->pixels + (int)ty * txt->w + int(tx));
+            uint8_t r;
+            uint8_t g;
+            uint8_t b;
 
-        SDL_GetRGB( pixel, txt->format , &r, &g, &b );
-        point(x, y, {static_cast<double>(r), static_cast<double>(g), static_cast<double>(b)});
+            SDL_GetRGB( pixel, txt->format , &r, &g, &b );
+            point(x, y, {static_cast<double>(r), static_cast<double>(g), static_cast<double>(b)});
+        }
     }
 }
 
@@ -222,7 +225,7 @@ void Raycaster::render()
         // current_texture = textures[wall_position - 1];
         current_surface = surfaces[wall_position];
         zBuffer[i] = distance;
-        draw_strake(x, h, colors[wall_position]);
+        draw_strake(x, h, {255, 0,0});
     }
 
 
@@ -245,18 +248,18 @@ void Raycaster::render()
 
     //Draws the player
     point(player[0]/2, player[1]/2, {255, 255, 255});
-    this->current_texture = textures[5];
-    point(400, 400, {0,0,0});
+    // this->current_texture = textures[5];
+    // point(400, 400, {0,0,0});
 
     //draws the helicopter
     // current_sprite = surfaces[5];
     // draw_rectangle(180, 190, block_size, block_size);
 
-     for(auto i{0}; i < 1000; ++i)
-     {
-         auto angle{player[2] - player[3] / 2.0 + player[3] * (double) i / 1000};
-         cast_ray(angle);
-     }
+    //  for(auto i{0}; i < 1000; ++i)
+    //  {
+    //      auto angle{player[2] - player[3] / 2.0 + player[3] * (double) i / 1000};
+    //      cast_ray(angle);
+    //  }
 
     //Draws sprites
     // for(auto object: other_objects)
