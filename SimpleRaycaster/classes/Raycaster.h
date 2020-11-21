@@ -8,6 +8,7 @@
 #ifndef Raycaster_h
 #define Raycaster_h
 #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_mixer.h>
 #include <stdio.h>
 #include <vector>
 #include <tuple>
@@ -15,6 +16,8 @@ using namespace::std;
 class Raycaster
 {
     private:
+        void loadMedia();
+        Mix_Music *gMusic = NULL;
         int step_size;
         int width;
         int height;

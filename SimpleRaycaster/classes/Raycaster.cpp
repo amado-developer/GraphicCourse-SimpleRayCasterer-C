@@ -12,12 +12,14 @@
 #include <fstream>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_mixer.h>
 #include <tuple>
 #include <iostream>
 #include <sstream>
 using namespace::std;
 Raycaster::Raycaster(int width, int height, char* window_name)
 {
+    loadMedia();
     this->width = width;
     this->height = height;
     this->window = SDL_CreateWindow(window_name,
@@ -33,13 +35,12 @@ Raycaster::Raycaster(int width, int height, char* window_name)
     this -> colors = colors;
     SDL_Texture* texture1 = IMG_LoadTexture(s, "../sprites/wall1.png");
     SDL_Texture* texture2 = IMG_LoadTexture(s, "../sprites/wall2.png");
- 
     SDL_Texture* helText  = IMG_LoadTexture(s, "../sprites/helicopter.png");
-    
+    SDL_Texture* sky    = IMG_LoadTexture(s, "../sprites/sky.png");
+
     SDL_Surface* txt1 = IMG_Load("../sprites/wall1.png");
     SDL_Surface* txt2 = IMG_Load("../sprites/wall2.png");
-  
-    
+   
 
     // SDL_Surface* sprite1 = IMG_Load("../sprites/sprite1.png");
     // SDL_Surface* sprite2 = IMG_Load("../sprites/sprite2.png");
@@ -49,11 +50,12 @@ Raycaster::Raycaster(int width, int height, char* window_name)
 
     textures.push_back(texture1);
     textures.push_back(texture2);
- 
     textures.push_back(helText);
+    textures.push_back(sky);
     
     surfaces.push_back(txt1);
     surfaces.push_back(txt2);
+  
 
     // this->enemies.push_back(make_tuple(100.0, 200.0, sprite2));
     // this->enemies.push_back(make_tuple(280.0, 190.0, sprite3));
@@ -64,12 +66,6 @@ Raycaster::Raycaster(int width, int height, char* window_name)
 
     vector<double> zBuffer(1000, -INFINITY);
     this -> zBuffer = zBuffer;
-
-
-    memset(frametimes, 0, sizeof(frametimes));
-    framecount = 0;
-    framespersecond = 0;
-    frametimelast = SDL_GetTicks();
 }
 
 /*
@@ -207,12 +203,21 @@ void Raycaster::draw_sprite(tuple<double, double, SDL_Surface*> sprite)
  */
 void Raycaster::render()
 {
+    gMusic = Mix_LoadMUS("../music/map.wav");
+    if( Mix_PlayingMusic() == 0 )
+	{
+		Mix_PlayMusic( gMusic, -1 );
+	}
     // SDL_SetRenderDrawColor(s, 0, 0, 0, SDL_ALPHA_OPAQUE);
     // SDL_RenderClear(s);
 
     //Draws the sky (ceiling)
-    draw_rectangle(0, 0, 1000, 250, {255, 0, 255});
-    draw_rectangle(0, 250, 1000, 250, {255, 255, 0});
+    current_texture = textures[3];
+    draw_rectangle(0, 0, 1000, 250);
+
+    //Draws the floor
+   
+    draw_rectangle(0, 250, 1000, 250, {132, 192, 17});
 
     //Draws the map in 3D
     for(auto i{0}; i < 1000; i++)
@@ -327,7 +332,8 @@ void Raycaster::render()
 
                 if(player[0] > 400.0 && player[0] < 450 && player[1] > 400 && player[1] < 450)
                 {
-                    win("../fonts/font.ttf", 40, "You have won! Press any key to start again!", {255, 255, 255, 255}, 120, 200);
+                    Mix_HaltMusic();
+                    win("../fonts/font.ttf", 40, "You have won! Press any key to start again!", {255, 155, 155, 255}, 120, 400);
                 }
                 
                 if(event.type == SDL_KEYDOWN)
@@ -370,11 +376,18 @@ void Raycaster::render()
 
                     int i{temp_x/ block_size};
                     int j{temp_y/block_size};
-
-                    if(map[j][i] == ' ')
+                    bool is = map[j][i] == '2';
+                    cout<<is <<endl;
+                    if(map[j][i] != '2' && map[j][i] != '1')
                     {
                         player[0] = temp_x;
                         player[1] = temp_y;
+                        render();
+                    }
+                    else
+                    {
+                        player[0] -= 5;
+                        player[1] -= 5;
                         render();
                     }
                 }
@@ -382,7 +395,6 @@ void Raycaster::render()
             }
  
         }
-    
         SDL_DestroyWindow(window);
         SDL_DestroyRenderer(s);
         SDL_Quit();
@@ -418,13 +430,24 @@ void Raycaster::set_text(string message, SDL_Color color)
     SDL_FreeSurface(text_surface);
 }
 
+
+void Raycaster::loadMedia()
+{
+    Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 );
+	gMusic = Mix_LoadMUS("../music/intro2.wav");
+	if( gMusic == NULL )
+	{
+		printf( "Failed to load beat music! SDL_mixer Error: %s\n", Mix_GetError());
+	}
+}
+
 void Raycaster::render_main_menu(string path, int font_size, string message, SDL_Color color, 
 int x, int y)
 {
     bool show{true};
     bool click{false};
     int current_button{0};
-    SDL_Texture* background = IMG_LoadTexture(s, "../sprites/background.png");
+    SDL_Texture* background = IMG_LoadTexture(s, "../sprites/background.jpg");
     
     SDL_SetRenderDrawColor(s, 0, 0, 0, SDL_ALPHA_OPAQUE);
     SDL_RenderClear(s);
@@ -435,6 +458,12 @@ int x, int y)
     this -> text_rect.y = y;
     SDL_RenderCopy(s, text_texture, nullptr, &text_rect);
     SDL_RenderPresent(s);
+    gMusic = Mix_LoadMUS("../music/intro2.wav");
+    if( Mix_PlayingMusic() == 0 )
+	{
+		Mix_PlayMusic( gMusic, -1 );
+	}
+
     SDL_Event event;
     while (show)
     {
@@ -448,6 +477,7 @@ int x, int y)
             if(event.type == SDL_KEYDOWN)
             {
                 show = false;
+                Mix_HaltMusic();
                 render();
             }
         }
@@ -471,6 +501,11 @@ void Raycaster::win(string path, int font_size, string message, SDL_Color color,
     SDL_RenderCopy(s, text_texture, nullptr, &text_rect);
     SDL_RenderPresent(s);
     SDL_Event event;
+    gMusic = Mix_LoadMUS("../music/win.wav");
+    if( Mix_PlayingMusic() == 0 )
+	{
+		Mix_PlayMusic( gMusic, -1 );
+	}
     while (show)
     {
         while (SDL_PollEvent(&event))
@@ -482,6 +517,7 @@ void Raycaster::win(string path, int font_size, string message, SDL_Color color,
             
             if(event.type == SDL_KEYDOWN)
             {
+                Mix_HaltMusic();
                 show = false;
                 player[0] = 70;
                 player[1] = 70;
