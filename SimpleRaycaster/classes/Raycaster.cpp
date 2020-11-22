@@ -42,11 +42,11 @@ Raycaster::Raycaster(int width, int height, char* window_name)
     SDL_Surface* txt2 = IMG_Load("../sprites/wall2.png");
    
 
-    // SDL_Surface* sprite1 = IMG_Load("../sprites/sprite1.png");
-    // SDL_Surface* sprite2 = IMG_Load("../sprites/sprite2.png");
-    // SDL_Surface* sprite3 = IMG_Load("../sprites/sprite3.png");
-    // SDL_Surface* sprite4 = IMG_Load("../sprites/sprite4.png");
-    // SDL_Surface* helicopter = IMG_Load("../sprites/helicopter.png");
+     SDL_Surface* sprite1 = IMG_Load("../sprites/ring.png");
+     SDL_Surface* sprite2 = IMG_Load("../sprites/ring.png");
+     SDL_Surface* sprite3 = IMG_Load("../sprites/ring.png");
+     SDL_Surface* sprite4 = IMG_Load("../sprites/ring.png");
+ 
 
     textures.push_back(texture1);
     textures.push_back(texture2);
@@ -56,13 +56,7 @@ Raycaster::Raycaster(int width, int height, char* window_name)
     surfaces.push_back(txt1);
     surfaces.push_back(txt2);
   
-
-    // this->enemies.push_back(make_tuple(100.0, 200.0, sprite2));
-    // this->enemies.push_back(make_tuple(280.0, 190.0, sprite3));
-    // this->enemies.push_back(make_tuple(225.0, 340.0, sprite4));
-    // this->enemies.push_back(make_tuple(220.0, 425.0, sprite1));
-    // this->enemies.push_back(make_tuple(320.0, 420.0, sprite2));
-    // this->other_objects.push_back(make_tuple(400.0, 425.0,helicopter));
+    this->enemies.push_back(make_tuple(220.0, 425.0, sprite1));
 
     vector<double> zBuffer(1000, -INFINITY);
     this -> zBuffer = zBuffer;
@@ -188,7 +182,7 @@ void Raycaster::draw_sprite(tuple<double, double, SDL_Surface*> sprite)
                 uint8_t g;
                 uint8_t b;
                 SDL_GetRGB( pixel, current_sprite->format , &r, &g, &b);
-                if(r != 152 && g != 0 && b != 136)
+                if(r > 20 && g > 20 && b > 20)
                 {
                     point(x, y, {static_cast<double>(r), static_cast<double>(g), static_cast<double>(b)});
                     zBuffer[x] = sprite_d;
@@ -256,29 +250,19 @@ void Raycaster::render()
     // this->current_texture = textures[5];
     // point(400, 400, {0,0,0});
 
-    //draws the helicopter
-    // current_sprite = surfaces[5];
-    // draw_rectangle(180, 190, block_size, block_size);
+ 
+     for(auto i{0}; i < 1000; ++i)
+     {
+         auto angle{player[2] - player[3] / 2.0 + player[3] * (double) i / 1000};
+         cast_ray(angle);
+     }
 
-    //  for(auto i{0}; i < 1000; ++i)
-    //  {
-    //      auto angle{player[2] - player[3] / 2.0 + player[3] * (double) i / 1000};
-    //      cast_ray(angle);
-    //  }
-
-    //Draws sprites
-    // for(auto object: other_objects)
-    // {
-    //     point(get<0>(object), get<1>(object), {0,0,0});
-    //     current_sprite = get<2>(object);
-    //     draw_sprite(object);
-    // }
-    // for(auto enemy : enemies)
-    // {
-    //     point(get<0>(enemy), get<1>(enemy), {0,0,0});
-    //     current_sprite = get<2>(enemy);
-    //     draw_sprite(enemy);
-    // }
+    for(auto enemy : enemies)
+    {
+        point(get<0>(enemy), get<1>(enemy), {0,0,0});
+        current_sprite = get<2>(enemy);
+        draw_sprite(enemy);
+    }
 
   
         bool quit = false;
@@ -314,8 +298,6 @@ void Raycaster::render()
         text_rect.x = 850;
         text_rect.y = 450;
         SDL_RenderCopy(s, text_texture, nullptr, &text_rect);
-   
-
         SDL_RenderPresent(s);
         int temp_x{(int)player[0]};
         int temp_y{(int)player[1]};
@@ -330,7 +312,7 @@ void Raycaster::render()
                     break;
                 }
 
-                if(player[0] > 400.0 && player[0] < 450 && player[1] > 400 && player[1] < 450)
+                if(player[0] > 205.0 && player[0] < 220.0 && player[1] > 395.0 && player[1] < 435.0)
                 {
                     Mix_HaltMusic();
                     win("../fonts/font.ttf", 40, "You have won! Press any key to start again!", {255, 155, 155, 255}, 120, 400);
@@ -386,8 +368,8 @@ void Raycaster::render()
                     }
                     else
                     {
-                        player[0] -= 5;
-                        player[1] -= 5;
+                        player[0] -= 3;
+                        player[1] -= 3;
                         render();
                     }
                 }
